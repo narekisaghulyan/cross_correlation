@@ -44,7 +44,7 @@ module cc_testbench();
       $readmemb( "/home/cc/cs150/sp13/class/cs150-ad/cross_correlation/src/sineCraft/sines0.txt", A);
       $readmemb("/home/cc/cs150/sp13/class/cs150-ad/cross_correlation/src/sineCraft/sines1.txt", B);
       
-      REFout = -25;
+      REFout = -31;
       addr = 0;
       rst = 1;
       #10;
