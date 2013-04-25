@@ -1,0 +1,78 @@
+//Module: cc_testbench.v
+
+`timescale 1ns/1ps
+
+module cc_testbench();
+
+    parameter Halfcycle = 5; //half period is 5ns
+    
+    localparam Cycle = 2*Halfcycle;
+    
+    reg Clock;
+    
+    // Clock Signal generation:
+    initial Clock = 0; 
+    always #(Halfcycle) Clock = ~Clock;
+
+   // Register and wires to test the cross correlation
+   reg  [15:0] A [0:19200];
+   reg  [15:0] B [0:19200];
+   reg  [17:0] addr;
+   wire [9:0]  DUTout;
+   reg  [9:0]  REFout;
+   reg         rst, start;
+   wire        done;
+       
+
+   //Task for checking the output
+   task checkOutput;
+      input [15:0] A, B;
+      if ( abs(REFout - DUTout) <= 1 ) begin
+            $display("FAIL: Incorrect result for signal A: %b, signal B: %b:", A, B);
+            $display("\tA: DUTout: 0x%b, REFout: 0x%b", DUTout, REFout);
+            $finish();
+        end
+        else begin
+            $display("PASS: signal A: %b, signal B: %b:", A, B);
+            $display("\tA: DUTout: 0x%b, REFout: 0x%b", DUTout, REFout);
+        end
+    endtask
+   
+   //This is where the modules being tested are instantiated.
+   cc_1 cc_test(.rst(rst), .start(start), .m0(A[addr]), .m1(B[addr]), .clk(Clock), .index(DUTout), .done(done));
+   
+   initial begin
+      $readmemd("sines0.txt", A);
+      $readmemd("sines1.txt", B);
+      REFout = 10;
+      addr = 0;
+      rst = 1;
+      #1;
+      
+      start = 1;
+      
+      #1;
+      start = 0;
+      integer i;
+      
+      for(i = 0; i < 19200+1; i=i+1) begin
+	 addr = addr +1;
+	 #1;
+	 
+      end
+
+      while(~done)begin
+	 #1;
+      end
+      
+      
+      checkOutput(A,B);
+      $display("\n\nALL TESTS PASSED!");
+      $finish();
+	
+   
+   
+   end
+endmodule
+     
+   
